@@ -2,49 +2,47 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Repo, DataState } from './dataTypes';
 
 const initialState: DataState = {
-    data: [],
-    loading: false,
-    error: null,
-    currentPage: 1,
-    hasMore: true,
+    repoList: [],
+    repoListLoading: false,
+    repoListError: null,
+    repoListHasMore: true,
 
-    //selectedRepo: null,
-    selectedRepoLoading: false,
-    selectedRepoError: null,
+    repoSearch: [],
+    repoSearchLoading: false,
+    repoSearchoError: null,
+    repoSearchHasMore: true,
 };
 
 const dataSlice = createSlice({
     name: 'data',
     initialState,
     reducers: {
-        fetchRepoListRequest(state, action: PayloadAction<number>) {
-            state.loading = true;
-            state.error = null;
+        fetchRepoListRequest(state, action: PayloadAction<{page:number, perPage:number}>) {
+            state.repoListLoading = true;
+            state.repoListError = null;
         },
         fetchRepoListSuccess(state, action: PayloadAction<Repo[]>) {
-            state.loading = false;
-            state.data = [...state.data, ...action.payload];
-            state.currentPage += 1;
-            state.hasMore = action.payload.length === 10;
+            state.repoListLoading = false;
+            state.repoList = [...state.repoList, ...action.payload];
+            state.repoListHasMore = action.payload.length > 0;
         },
         fetchRepoListFailure(state, action: PayloadAction<string>) {
-            state.loading = false;
-            state.error = action.payload;
+            state.repoListLoading = false;
+            state.repoListError = action.payload;
         },
 
-        fetchRepoRequest(state, action: PayloadAction<string>) {
-            state.selectedRepoLoading = true;
-            state.selectedRepoError = null;
+        fetchRepoSearchRequest(state, action: PayloadAction<{searchQuery:string, page:number, perPage:number}>) {
+            state.repoSearchLoading = true;
+            state.repoSearchoError = null;
         },
-        fetchRepoSuccess(state, action: PayloadAction<Repo[]>) {
-            state.selectedRepoLoading = false;
-            //state.selectedRepo = action.payload;
-            state.data = [...action.payload];
-            state.hasMore = false;
+        fetchRepoSearchSuccess(state, action: PayloadAction<Repo[]>) {
+            state.repoSearchLoading = false;
+            state.repoSearch = [...state.repoSearch,...action.payload];
+            state.repoSearchHasMore = action.payload.length > 0;
         },
-        fetchRepoFailure(state, action: PayloadAction<string>) {
-            state.selectedRepoLoading = false;
-            state.selectedRepoError = action.payload;
+        fetchRepoSearchFailure(state, action: PayloadAction<string>) {
+            state.repoSearchLoading = false;
+            state.repoSearchoError = action.payload;
         },
         resetDataState(state) {
             return initialState; // Reset the state to its initial values
@@ -56,9 +54,9 @@ export const {
     fetchRepoListRequest,
     fetchRepoListSuccess,
     fetchRepoListFailure,
-    fetchRepoRequest,
-    fetchRepoSuccess,
-    fetchRepoFailure,
+    fetchRepoSearchRequest,
+    fetchRepoSearchSuccess,
+    fetchRepoSearchFailure,
     resetDataState
 } = dataSlice.actions;
 

@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRepoListRequest, fetchRepoRequest, resetDataState } from '@/store/dataSlice';
+import { fetchRepoListRequest, fetchRepoSearchRequest, resetDataState } from '@/store/dataSlice';
 import { RootState } from '@/store';
 import styles from './repo-list.module.css';
 import Button from '@/components/Button';
@@ -10,18 +10,25 @@ import Button from '@/components/Button';
 const RepoListPage: React.FC = () => {
     const dispatch = useDispatch();
     const {
-        data,
-        loading,
-        hasMore,
+        repoList,
+        repoListLoading,
+        repoListHasMore,
+        repoSearch,
+        repoSearchLoading,
+        repoSearchHasMore,
     } = useSelector((state: RootState) => state.data);
+    const perPage = 10;
     const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
     const [clicked, setClicked] = useState(-1);
     const listContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (hasMore && page > 0) {
-            dispatch(fetchRepoListRequest(page));
+        if (!searchQuery && repoListHasMore && page > 0) {
+            dispatch(fetchRepoListRequest({ page, perPage }));
+        }
+        if (searchQuery && repoSearchHasMore && page > 0) {
+            dispatch(fetchRepoSearchRequest({ searchQuery, page, perPage }));
         }
     }, [dispatch, page]);
 
@@ -33,15 +40,14 @@ const RepoListPage: React.FC = () => {
     }
 
     const searchRepo = () => {
-        if (searchQuery !== "") {
-            setPage(0);
-            setClicked(-1);
-            dispatch(fetchRepoRequest(searchQuery))
+        setPage(1);
+        setClicked(-1); //collapses open cards
+        dispatch(resetDataState());
+        if (searchQuery) {
+            dispatch(fetchRepoSearchRequest({ searchQuery, page: 1, perPage }));
         }
-        if (searchQuery === "" && page === 0) {
-            setPage(1);
-            dispatch(resetDataState());
-            dispatch(fetchRepoListRequest(page));
+        if (!searchQuery) {
+            dispatch(fetchRepoListRequest({ page: 1, perPage }));
         }
     }
 
@@ -55,7 +61,10 @@ const RepoListPage: React.FC = () => {
     };
 
     const handleLoadMore = () => {
-        if (!loading && hasMore) {
+        if (!searchQuery && !repoListLoading && repoListHasMore) {
+            setPage((prevPage) => prevPage + 1);
+        }
+        if (searchQuery && !repoSearchLoading && repoSearchHasMore) {
             setPage((prevPage) => prevPage + 1);
         }
     };
@@ -90,7 +99,7 @@ const RepoListPage: React.FC = () => {
             </div>
             <div className={styles.listContainer} ref={listContainerRef}>
                 <ul>
-                    {data.map((repo, index) => (
+                    {(searchQuery ? repoSearch : repoList).map((repo, index) => (
                         <li key={`${repo.name}-${index}`} className={styles.box}
                             onClick={() => {
                                 clicked === index ? setClicked(-1) : setClicked(index);
@@ -125,7 +134,8 @@ const RepoListPage: React.FC = () => {
                         </li>
                     ))}
                 </ul>
-                {loading && <p>Loading...</p>}
+                {repoListLoading && <p>Loading...</p>}
+                {repoSearchLoading && <p>Loading...</p>}
             </div>
 
             <footer className={styles.footer}>

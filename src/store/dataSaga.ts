@@ -1,17 +1,21 @@
 import { all, call, put, takeLatest } from 'redux-saga/effects';
-import { fetchRepoList, fetchRepo } from '../api';
+import { fetchRepoList, fetchRepoSearch } from '../api';
 import {
     fetchRepoListSuccess,
     fetchRepoListFailure,
-    fetchRepoFailure,
-    fetchRepoSuccess
+    fetchRepoSearchFailure,
+    fetchRepoSearchSuccess
 } from './dataSlice';
 import { Repo } from './dataTypes';
 
-function* fetchRepoListSaga(action: { type: string; payload: number }): Generator<any> {
+function* fetchRepoListSaga(action: {
+    type: string;
+    payload: { page: number, perPage: number }
+}): Generator<any> {
     try {
-        const perPage = 10;
-        const response: { data: Repo[] } = yield call(fetchRepoList, action.payload, perPage);
+        const response: { data: Repo[] } = yield call(
+            fetchRepoList, action.payload.page, action.payload.perPage
+        );
         const data: Repo[] = response.data;
         yield put(fetchRepoListSuccess(data));
     } catch (error: any) {
@@ -19,13 +23,18 @@ function* fetchRepoListSaga(action: { type: string; payload: number }): Generato
     }
 }
 
-function* fetchRepoSaga(action: { type: string; payload: string }): Generator<any> {
+function* fetchRepoSaga(action: {
+    type: string;
+    payload: { searchQuery: string, page: number, perPage: number }
+}): Generator<any> {
     try {
-        const response: { data: any } = yield call(fetchRepo, action.payload);
+        const response: { data: any } = yield call(
+            fetchRepoSearch, action.payload.searchQuery, action.payload.page, action.payload.perPage
+        );
         const data: Repo[] = response.data.items;
-        yield put(fetchRepoSuccess(data));
+        yield put(fetchRepoSearchSuccess(data));
     } catch (error: any) {
-        yield put(fetchRepoFailure(error.message));
+        yield put(fetchRepoSearchFailure(error.message));
     }
 }
 
@@ -34,7 +43,7 @@ function* watchFetchRepoList(): Generator<any> {
 }
 
 function* watchFetchRepo(): Generator<any> {
-    yield takeLatest('data/fetchRepoRequest', fetchRepoSaga);
+    yield takeLatest('data/fetchRepoSearchRequest', fetchRepoSaga);
 }
 
 export default function* rootSaga(): Generator<any> {

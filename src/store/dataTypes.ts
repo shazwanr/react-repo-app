@@ -9,13 +9,13 @@ export interface Repo {
 }
 
 export interface DataState {
-    data: Repo[];
-    loading: boolean;
-    error: string | null;
-    currentPage: number;
-    hasMore: boolean;
+    repoList: Repo[];
+    repoListLoading: boolean;
+    repoListError: string | null;
+    repoListHasMore: boolean;
 
-    //selectedRepo: Repo | null;
-    selectedRepoLoading: boolean;
-    selectedRepoError: string | null;
+    repoSearch: Repo[];
+    repoSearchLoading: boolean;
+    repoSearchoError: string | null;
+    repoSearchHasMore: boolean;
 }
