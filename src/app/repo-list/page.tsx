@@ -1,0 +1,138 @@
+"use client";
+
+import React, { useRef, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRepoListRequest, fetchRepoRequest, resetDataState } from '@/store/dataSlice';
+import { RootState } from '@/store';
+import styles from './repo-list.module.css';
+import Button from '@/components/Button';
+
+const RepoListPage: React.FC = () => {
+    const dispatch = useDispatch();
+    const {
+        data,
+        loading,
+        hasMore,
+    } = useSelector((state: RootState) => state.data);
+    const [page, setPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [clicked, setClicked] = useState(-1);
+    const listContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (hasMore && page > 0) {
+            dispatch(fetchRepoListRequest(page));
+        }
+    }, [dispatch, page]);
+
+    const navigateToGithub = (event: any, html_url: string) => {
+        event.stopPropagation();;
+        if (html_url) {
+            window.open(html_url, '_blank');
+        }
+    }
+
+    const searchRepo = () => {
+        if (searchQuery !== "") {
+            setPage(0);
+            setClicked(-1);
+            dispatch(fetchRepoRequest(searchQuery))
+        }
+        if (searchQuery === "" && page === 0) {
+            setPage(1);
+            dispatch(resetDataState());
+            dispatch(fetchRepoListRequest(page));
+        }
+    }
+
+    const handleScroll = () => {
+        if (listContainerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = listContainerRef.current;
+            if (scrollTop + clientHeight >= scrollHeight - 5) {
+                handleLoadMore();
+            }
+        }
+    };
+
+    const handleLoadMore = () => {
+        if (!loading && hasMore) {
+            setPage((prevPage) => prevPage + 1);
+        }
+    };
+
+    useEffect(() => {
+        const listContainer = listContainerRef.current;
+        if (listContainer) {
+            listContainer.addEventListener('scroll', handleScroll);
+            return () => {
+                listContainer.removeEventListener('scroll', handleScroll);
+            };
+        }
+    }, [listContainerRef.current, handleScroll]);
+
+    return (
+        <div className={styles.container}>
+            <h1 className={styles.title}>React Community Repository List</h1>
+            <div className={styles.searchContainer}>
+                <input
+                    type="text"
+                    className={styles.searchInput}
+                    placeholder="Search repository..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            searchRepo();
+                        }
+                    }}
+                />
+                <Button label="Search" onClick={searchRepo} />
+            </div>
+            <div className={styles.listContainer} ref={listContainerRef}>
+                <ul>
+                    {data.map((repo, index) => (
+                        <li key={`${repo.name}-${index}`} className={styles.box}
+                            onClick={() => {
+                                clicked === index ? setClicked(-1) : setClicked(index);
+                            }}>
+                            <div className={styles.boxTitleContainer}>
+                                <h1 className={styles.boxIndex}>{index + 1}</h1>
+                                <h1 className={styles.boxTitle}>{repo.name}</h1>
+                            </div>
+                            <h2 className={styles.boxDescription}>{repo.description}</h2>
+                            <div className={clicked === index ? "open" : "hidden"}>
+                                <ul className={styles.boxDetail}>
+                                    <li>
+                                        <h3>{repo.stargazers_count}</h3>
+                                        <h4>⭐Stars</h4>
+                                    </li>
+                                    <li>
+                                        <h3>{repo.forks_count}</h3>
+                                        <h4>⤴️Forks</h4>
+                                    </li>
+                                    <li>
+                                        <h3>{repo.watchers_count}</h3>
+                                        <h4>👀Watchers</h4>
+                                    </li>
+                                    <li>
+                                        <h3>{repo.language}</h3>
+                                        <h4>🔤language</h4>
+                                    </li>
+                                </ul>
+                                <Button label="View on Github"
+                                    onClick={(event) => navigateToGithub(event, repo.html_url)} />
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+                {loading && <p>Loading...</p>}
+            </div>
+
+            <footer className={styles.footer}>
+                <p>@shazwanr 2025</p>
+            </footer>
+        </div>
+    );
+};
+
+export default RepoListPage;
