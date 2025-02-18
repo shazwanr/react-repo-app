@@ -125,7 +125,7 @@ const RepoListPage: React.FC = () => {
                                     </li>
                                     <li>
                                         <h3>{repo.language}</h3>
-                                        <h4>🔤language</h4>
+                                        <h4>🔤Language</h4>
                                     </li>
                                 </ul>
                                 <Button label="View on Github"
