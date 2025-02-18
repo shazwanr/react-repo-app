@@ -4,12 +4,16 @@ import React from 'react';
 import Button from '@/components/Button';
 import { useRouter } from 'next/navigation';
 import styles from './home.module.css';
+import { useDispatch } from 'react-redux';
+import { resetDataState } from '@/store/dataSlice';
 
 const HomePage: React.FC = () => {
 
     const router = useRouter();
+    const dispatch = useDispatch();
 
     const navigateToRepoList = () => {
+        dispatch(resetDataState());
         router.push('/repo-list');
     };
 
