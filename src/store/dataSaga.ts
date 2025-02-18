@@ -23,7 +23,7 @@ function* fetchRepoListSaga(action: {
     }
 }
 
-function* fetchRepoSaga(action: {
+function* fetchRepoSearchSaga(action: {
     type: string;
     payload: { searchQuery: string, page: number, perPage: number }
 }): Generator<any> {
@@ -43,7 +43,7 @@ function* watchFetchRepoList(): Generator<any> {
 }
 
 function* watchFetchRepo(): Generator<any> {
-    yield takeLatest('data/fetchRepoSearchRequest', fetchRepoSaga);
+    yield takeLatest('data/fetchRepoSearchRequest', fetchRepoSearchSaga);
 }
 
 export default function* rootSaga(): Generator<any> {
